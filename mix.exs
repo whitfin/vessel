@@ -56,6 +56,8 @@ defmodule Vessel.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
+      # Production dependencies
+      { :exscript, "~> 0.1" },
       # Development dependencies
       { :credo,  "~> 0.4",  optional: true, only: [ :dev, :test ] },
       { :ex_doc, "~> 0.14", optional: true, only: [ :dev, :test ] }
