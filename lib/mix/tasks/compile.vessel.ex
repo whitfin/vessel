@@ -1,36 +1,33 @@
 defmodule Mix.Tasks.Compile.Vessel do
-  @moduledoc """
-  Compiles a set of Vessel binaries.
-
-  The binaries to compile are dictated by the `:vessel` property inside the Mix
-  project definition. The property should be a Keyword List containing a subset
-  of the keys `:mapper`, `:combiner` and `:reducer`.
-
-  Each of these keys may have options provided as to where to build the binary
-  to, and the module which should act as the entry point:
-
-      [ mapper: [ module: MyMapper, output: "./binaries/mapper" ] ]
-
-  If you don't provide an `:output` property, it will be placed in `target/` with
-  a name of the form `{app_name}-{type}`, for example `my_app-mapper`.
-
-  If you don't wish to customise the output, you can just set the properties as
-  an Atom and it will be used as the module name:
-
-      [ mapper: MyMapper ] # unpacks to [ mapper: [ module: MyMapper ] ]
-
-  If your module name is not provided, the binary will be ignored - however if
-  your module is invalid, an error will be raised.
-  """
-
   # mix task
   use Mix.Task
 
   # different Vessel build phases
   @phases [ :mapper, :combiner, :reducer ]
 
-  @doc """
-  Callback implementation for `Mix.Task.run/1`.
+  # information for the mix command line
+  @shortdoc "Compiles any designated Vessel binaries"
+
+  @moduledoc """
+  Compiles a set of Vessel binaries.
+
+  The binaries to compile are dictated by the `:vessel` property inside the Mix
+  project definition. The property should be a Keyword List containing a subset
+  of the keys `:mapper`, `:combiner` and `:reducer`. Each of these keys may have
+  options provided as to where to build the binary to, and the module which should
+  act as the entry point:
+
+      [ mapper: [ module: MyMapper, target: "./binaries/mapper" ] ]
+
+  If you don't provide an `:target` property, it will be placed in `target/<ver>`
+  with a name of the form `{app_name}-{type}`, for example `my_app-mapper`. If
+  you do not wish to customise the output, you can just set the properties as an
+  Atom and it will be used as the module name:
+
+      [ mapper: MyMapper ] # unpacks to [ mapper: [ module: MyMapper ] ]
+
+  If your module name is not provided, the binary will be ignored - however if
+  your module is invalid, an error will be raised.
   """
   def run(args) do
     Mix.Project.get!()
@@ -58,8 +55,9 @@ defmodule Mix.Tasks.Compile.Vessel do
   defp build!(project, module, options, phase) do
     ensure_module!(module, phase)
 
-    app  = Keyword.get(project, :app)
-    out  = Keyword.get(options, :output, "./target/#{app}-#{phase}")
+    app = Keyword.get(project, :app)
+    ver = Keyword.get(project, :ver)
+    out = Keyword.get(options, :target, "./rel/v#{ver}/#{app}-#{phase}")
 
     name = String.to_atom("#{app}_#{phase}")
     opts = [ app: name, path: out, main_module: module ]
