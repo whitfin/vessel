@@ -56,7 +56,7 @@ defmodule Mix.Tasks.Compile.Vessel do
     ensure_module!(module, phase)
 
     app = Keyword.get(project, :app)
-    ver = Keyword.get(project, :ver)
+    ver = Keyword.get(project, :version)
     out = Keyword.get(options, :target, "./rel/v#{ver}/#{app}-#{phase}")
 
     name = String.to_atom("#{app}_#{phase}")
