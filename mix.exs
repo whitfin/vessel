@@ -12,7 +12,7 @@ defmodule Vessel.Mixfile do
     [
       app: :vessel,
       name: "Vessel",
-      description: "Elixir MapReduce interfaces with Hadoop Streaming integration",
+      description: "Elixir MapReduce interfaces for Hadoop Streaming",
       package: %{
         files: [
           "lib",
