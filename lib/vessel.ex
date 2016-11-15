@@ -56,7 +56,24 @@ defmodule Vessel do
     do: Map.get(private, field, default)
 
   @doc """
-  Logs a message to the Hadoop logs.
+  Inspects a value and outputs to the Hadoop logs.
+
+  You can pass your value as either the first or second argument, as long as the
+  other one is a Vessel context - this is to make it easier to chain, in the same
+  way you would with `IO.inspect/2`.
+
+  This function uses `:stderr` as Hadoop is listening to all `:stdio` output as
+  the results of your mapper - so going via `:stdio` would corrupt the Job values.
+  """
+  @spec inspect(Vessel.t | any, Vessel.t | any, Keyword.t) :: any
+  def inspect(value, ctx, opts \\ [])
+  def inspect(%{ stderr: stderr }, value, opts),
+    do: IO.inspect(stderr, value, opts)
+  def inspect(value, %{ stderr: _stderr } = ctx, opts),
+    do: inspect(ctx, value, opts)
+
+  @doc """
+  Outputs a message to the Hadoop logs.
 
   This function uses `:stderr` as Hadoop is listening to all `:stdio` output as
   the results of your mapper - so going via `:stdio` would corrupt the Job values.
