@@ -15,6 +15,7 @@ defmodule Vessel.Mixfile do
       description: "Elixir MapReduce interfaces for Hadoop Streaming",
       package: %{
         files: [
+          "config",
           "lib",
           "mix.exs",
           "LICENSE",
