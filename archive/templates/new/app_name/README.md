@@ -1,7 +1,5 @@
 # <%= app_module %>
 
-**TODO: Add description**
-
 To develop a Vessel job for Hadoop:
 
 - Modify the logic inside `lib/<%= app_name %>/mapper.ex` and `lib/<%= app_name %>/reducer.ex` to use your own desired behaviour.

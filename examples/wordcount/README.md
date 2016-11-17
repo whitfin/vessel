@@ -1,7 +1,5 @@
 # Wordcount
 
-**TODO: Add description**
-
 To develop a Vessel job for Hadoop:
 
 - Modify the logic inside `lib/wordcount/mapper.ex` and `lib/wordcount/reducer.ex` to use your own desired behaviour.
