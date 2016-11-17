@@ -94,8 +94,8 @@ $ cd my_app
 # Pull in Vessel deps
 $ mix deps.get
 
-# Compile!
-$ mix compile
+# Compile your binaries
+$ mix vessel.compile
 ```
 
 You should see some output similar to the following (it may change in future as the library evolves):
@@ -118,3 +118,17 @@ Generated escript ./rel/v0.1.0/my_app-reducer with MIX_ENV=dev
 Looking at the last two lines, we can see that we now have two binaries inside the `rel/` directory which contain our mapper and reducer - these binaries can be used against Hadoop Streaming directly as defined [here](https://hadoop.apache.org/docs/r1.2.1/streaming.html).
 
 You can customize the names of binaries and the target directory to by modifying the `:vessel` configuration in your `mix.exs` - see the `Mix.Tasks.Compile.Vessel` documentation for further information on how to go about this.
+
+## Project Testing
+
+Until I get a testing framework in place, the best way to test your jobs is just with small input files. You don't need to have a running Hadoop installation; you can use the following to replicate the Hadoop behaviour. This will just pipe everything together in the same way that Hadoop would using standard UNIX sorting.
+
+```bash
+# Testing syntax
+$ cat <input> | <mapper> | sort -k1,1 | <reducer> | sort
+
+# Example usage (taken from the wordcount example)
+$ cat resources/input.txt | ./rel/v0.1.0/wordcount-mapper | sort -k1,1 | ./rel/v0.1.0/wordcount-reducer | sort
+```
+
+I intend to add something into the library to make testing a little easier so you can test via things like `ExUnit`. This will likely just be some form of dummy IO streams to make your job believe it's receiving from Hadoop when in reality it's just receiving from a test tool. Until this is complete, you'll have to test your code in isolation (e.g. call `map/3` yourself, and expect the output).
