@@ -21,6 +21,16 @@ defmodule Vessel.Relay do
   @type server :: GenServer.server
 
   @doc """
+  Creates a new Relay worker.
+
+  Workers are always linked to the current process, as they're designed to be used
+  from within ExUnit and be short lived (to avoid leaking).
+  """
+  @spec create(Keyword.t) :: GenServer.on_start
+  def create(opts),
+    do: GenServer.start_link(__MODULE__, [], opts)
+
+  @doc """
   Flushes the Relay buffer.
 
   This simply throws away the current buffer stored in the Relay. No other actions
@@ -72,6 +82,16 @@ defmodule Vessel.Relay do
   @spec sort(server) :: [ binary ]
   def sort(pid),
     do: pid |> raw |> Vio.sort
+
+  @doc """
+  Stops a Relay worker.
+
+  This just terminates an existing Relay process using `GenServer.stop/1`. It's
+  just a shorthand to mask the implementation details from the user.
+  """
+  @spec stop(server) :: :ok
+  def stop(pid),
+    do: GenServer.stop(pid)
 
   @doc """
   Streams a sorted Relay buffer.
