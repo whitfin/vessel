@@ -22,10 +22,26 @@ defmodule Vessel do
     # Job user related items
     args: [], private: %{},
     # Job execution metadata
-    conf: Conf.new(), count: 0, group: nil,
+    conf: %{}, count: 0, group: nil,
     # IO related fun stuff
     stderr: :stderr, stdout: :stdio
   ]
+
+  @doc """
+  Creates a new Vessel context using the provided pairs.
+
+  The pairs provided overwrite the defaults. Context must be created this way as
+  defaults can't be provided at compile time (because things like `:conf` use
+  runtime values).
+  """
+  @spec context(Keyword.t) :: Vessel.t
+  def context(pairs \\ []) when is_list(pairs) do
+    final_pairs = Keyword.get_and_update(pairs, :conf, fn
+      (nil) -> Conf.new()
+      (val) -> val
+    end)
+    struct(__MODULE__, final_pairs)
+  end
 
   @doc """
   Retrieves a value from the Job configuration.
@@ -69,7 +85,7 @@ defmodule Vessel do
   @spec inspect(Vessel.t | any, Vessel.t | any, Keyword.t) :: any
   def inspect(value, ctx, opts \\ [])
   def inspect(%{ stderr: _stderr } = ctx, value, opts),
-    do: Vio.stderr(ctx, Kernel.inspect(value, opts))
+    do: Vio.stderr(ctx, "#{Kernel.inspect(value, opts)}\n")
   def inspect(value, %{ stderr: _stderr } = ctx, opts),
     do: Vessel.inspect(ctx, value, opts)
 

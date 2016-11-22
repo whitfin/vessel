@@ -29,7 +29,7 @@ defmodule Vessel.IO do
   value. We trim the trailing newline, and split on the first (and only first)
   tab character, before returning the generated List.
   """
-  @spec split(binary) :: [ binary, binary ]
+  @spec split(binary) :: [ binary, ... ]
   def split(value) when is_binary(value) do
     value
     |> String.trim_trailing("\n")

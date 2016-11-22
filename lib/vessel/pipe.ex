@@ -27,11 +27,11 @@ defmodule Vessel.Pipe do
 
       @doc false
       def consume(stream, options \\ []) do
-        ctx = %Vessel{
+        ctx = Vessel.context([
           args:   Keyword.get(options,   :args,      []),
           stdout: Keyword.get(options, :stdout,  :stdio),
           stderr: Keyword.get(options, :stderr, :stderr)
-        }
+        ])
 
         ctx = handle_create(ctx)
 
