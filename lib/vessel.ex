@@ -12,6 +12,7 @@ defmodule Vessel do
 
   # add aliases
   alias Vessel.Conf
+  alias Vessel.IO, as: Vio
 
   # add our opaque type for specs
   @opaque t :: %__MODULE__{ }
@@ -67,10 +68,10 @@ defmodule Vessel do
   """
   @spec inspect(Vessel.t | any, Vessel.t | any, Keyword.t) :: any
   def inspect(value, ctx, opts \\ [])
-  def inspect(%{ stderr: stderr }, value, opts),
-    do: IO.inspect(stderr, value, opts)
+  def inspect(%{ stderr: _stderr } = ctx, value, opts),
+    do: Vio.stderr(ctx, Kernel.inspect(value, opts))
   def inspect(value, %{ stderr: _stderr } = ctx, opts),
-    do: inspect(ctx, value, opts)
+    do: Vessel.inspect(ctx, value, opts)
 
   @doc """
   Outputs a message to the Hadoop logs.
@@ -80,9 +81,9 @@ defmodule Vessel do
   """
   @spec log(Vessel.t, binary | any) :: :ok
   def log(ctx, msg) when is_binary(msg),
-    do: stderr(ctx, "#{msg}\n")
+    do: Vio.stderr(ctx, "#{msg}\n")
   def log(ctx, msg),
-    do: log(ctx, inspect(msg))
+    do: Vessel.inspect(ctx, msg)
 
   @doc """
   Stores a private key and value inside the context.
@@ -116,7 +117,7 @@ defmodule Vessel do
   """
   @spec update_counter(Vessel.t, binary, binary, number) :: :ok
   def update_counter(ctx, group, counter, amount \\ 1),
-    do: stderr(ctx, "reporter:counter:#{group},#{counter},#{amount}\n")
+    do: Vio.stderr(ctx, "reporter:counter:#{group},#{counter},#{amount}\n")
 
   @doc """
   Updates the status of the Hadoop Job.
@@ -125,7 +126,7 @@ defmodule Vessel do
   """
   @spec update_status(Vessel.t, binary) :: :ok
   def update_status(ctx, status),
-    do: stderr(ctx, "reporter:status:#{status}\n")
+    do: Vio.stderr(ctx, "reporter:status:#{status}\n")
 
   @doc """
   Writes a key/value Tuple to the Job context.
@@ -145,12 +146,6 @@ defmodule Vessel do
   """
   @spec write(Vessel.t, any, any) :: :ok
   def write(ctx, key, value),
-    do: stdout(ctx, "#{key}\t#{value}\n")
-
-  # Writes out a message to `:stdio` using the contextual `:stdout`
-  defp stderr(%{ stderr: stderr }, msg), do: IO.write(stderr, msg)
-
-  # Writes out a message to `:stderr` using the contextual `:stderr`
-  defp stdout(%{ stdout: stdout }, msg), do: IO.write(stdout, msg)
+    do: Vio.stdout(ctx, "#{key}\t#{value}\n")
 
 end

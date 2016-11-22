@@ -13,6 +13,7 @@ defmodule Vessel.Reducer do
   inside the Vessel context as this is where job state is tracked. If you do not
   return a Vessel context, it will ignore the return value and remain unchanged.
   """
+  alias Vessel.IO, as: Vio
 
   @doc """
   Invoked prior to any values being read from the stream.
@@ -73,9 +74,6 @@ defmodule Vessel.Reducer do
       # inherit piping
       use Vessel.Pipe
 
-      # add alias
-      alias Vessel.Term
-
       # inherit Reducer behaviour
       @behaviour Vessel.Reducer
 
@@ -93,7 +91,7 @@ defmodule Vessel.Reducer do
       def handle_line(line, ctx) do
         new_ctx =
           line
-          |> convert_line
+          |> Vio.split
           |> handle_convert(ctx)
 
         super(line, new_ctx)
@@ -107,21 +105,9 @@ defmodule Vessel.Reducer do
         |> super
       end
 
-      # Converts an line coming through stdin to the correct form for MapReduce,
-      # by trimming the trailing newline and splitting into two parts. The spec
-      # states that anything up to the first tab character is the key, and what
-      # follows is the value. The output of this function is just a two-element
-      # List; we could turn it into a Tuple, but as it's only consumed internally
-      # we don't bother to save a little bit of memory and computation.
-      defp convert_line(line) do
-        line
-        |> String.trim_trailing("\n")
-        |> String.split("\t", [ parts: 2 ])
-      end
-
       # This function handles the converted key/value pair coming from the prior
-      # call to `convert_line/1`. We match on the previous key and the new key to
-      # see if they belong in the same group; if they do, then we just add the
+      # call to `Vessel.IO.split/1`. We match on the previous key and the new key
+      # to see if they belong in the same group; if they do, then we just add the
       # new value to the buffer of values. If it's a new key, we fire a `reduce/3`
       # call with the previous key and values and begin storing the new state.
       defp handle_convert([ key, val ], %Vessel{ group: { key, values } } = ctx) do
