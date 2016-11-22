@@ -6,9 +6,7 @@ defmodule Vessel.Conf do
   code bloat, and to aid in making the environment configuration easier to test
   against.
   """
-
-  # Regex to ensure no upper case
-  @non_upper ~r/^[^A-Z\.]+$/
+  @non_streaming ~r/^[^A-Z\.]+$/
 
   @doc """
   Creates a new Job configuration from a Map.
@@ -26,8 +24,7 @@ defmodule Vessel.Conf do
 
   # Just a local function to deal with the key/value filtering from the context
   # environment within Hadoop Streaming. This just is a Regex match.
-  defp filter_env({ key, _value }) do
-    !Regex.match?(@non_upper, key)
-  end
+  defp filter_env({ key, _value }),
+    do: Regex.match?(@non_streaming, key)
 
 end
