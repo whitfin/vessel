@@ -5,9 +5,9 @@ defmodule <%= app_module %>.Mixfile do
     [app: :<%= app_name %>,
      version: "0.1.0",
      elixir: "~> 1.1",
+     compilers: Mix.compilers() ++ [:vessel],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     compilers: Mix.compilers() ++ [:vessel],
      deps: deps(),
      vessel: vessel()]
   end
