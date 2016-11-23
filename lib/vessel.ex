@@ -24,7 +24,9 @@ defmodule Vessel do
     # Job execution metadata
     conf: %{}, count: 0, group: nil,
     # IO related fun stuff
-    stderr: :stderr, stdout: :stdio
+    stderr: :stderr, stdout: :stdio,
+    # Internal storage
+    meta: %{}
   ]
 
   @doc """
@@ -36,11 +38,11 @@ defmodule Vessel do
   """
   @spec context(Keyword.t) :: Vessel.t
   def context(pairs \\ []) when is_list(pairs) do
-    final_pairs = Keyword.get_and_update(pairs, :conf, fn
-      (nil) -> Conf.new()
-      (val) -> val
+    { _old, final } = Keyword.get_and_update(pairs, :conf, fn
+      (nil) -> { nil, Conf.new() }
+      (val) -> { val, val }
     end)
-    struct(__MODULE__, final_pairs)
+    struct(__MODULE__, final)
   end
 
   @doc """
@@ -58,9 +60,18 @@ defmodule Vessel do
   receive a value from the env which isn't actually a configuration variable, so
   please validate appropriately.
   """
-  @spec get_conf_variable(Vessel.t, any, any) :: any
-  def get_conf_variable(%{ conf: conf }, key, default \\ nil),
-    do: Map.get(conf, key, default)
+  @spec get_conf(Vessel.t, any, any) :: any
+  def get_conf(%{ conf: conf }, key, default \\ nil),
+    do: Map.get(conf, String.replace(key, ".", "_"), default)
+
+  @doc """
+  Retrieves a meta key and value from the context.
+
+  This should not be used outside of the library modules.
+  """
+  @spec get_meta(Vessel.t, any, any) :: any
+  def get_meta(%{ meta: meta }, field, default \\ nil),
+    do: Map.get(meta, field, default)
 
   @doc """
   Retrieves a private key and value from the context.
@@ -85,7 +96,7 @@ defmodule Vessel do
   @spec inspect(Vessel.t | any, Vessel.t | any, Keyword.t) :: any
   def inspect(value, ctx, opts \\ [])
   def inspect(%{ stderr: _stderr } = ctx, value, opts),
-    do: Vio.stderr(ctx, "#{Kernel.inspect(value, opts)}\n")
+    do: Vio.stderr(ctx, "#{Kernel.inspect(value, opts)}\n") && value
   def inspect(value, %{ stderr: _stderr } = ctx, opts),
     do: Vessel.inspect(ctx, value, opts)
 
@@ -102,6 +113,28 @@ defmodule Vessel do
     do: Vessel.inspect(ctx, msg)
 
   @doc """
+  Sets a variable in the Job configuration.
+
+  This operates in a similar way to `put_private/3` except that it should only
+  be used for Job configuration values (as a semantic difference).
+
+  This does not set the variable in the environment, as we clone the environment
+  Job configuration on startup to avoid polluting the environment.
+  """
+  @spec put_conf(Vessel.t, any, any) :: Vessel.t
+  def put_conf(%{ conf: conf } = ctx, key, value),
+    do: %{ ctx | conf: Map.put(conf, String.replace(key, ".", "_"), value) }
+
+  @doc """
+  Stores a meta key and value inside the context.
+
+  This should not be used outside of the library modules.
+  """
+  @spec put_meta(Vessel.t, any, any) :: Vessel.t
+  def put_meta(%{ meta: meta } = ctx, field, value),
+    do: %{ ctx | meta: Map.put(meta, field, value) }
+
+  @doc """
   Stores a private key and value inside the context.
 
   This is where you can persist values between steps in the Job. You can think
@@ -111,19 +144,6 @@ defmodule Vessel do
   @spec put_private(Vessel.t, any, any) :: Vessel.t
   def put_private(%{ private: private } = ctx, field, value),
     do: %{ ctx | private: Map.put(private, field, value) }
-
-  @doc """
-  Sets a variable in the Job configuration.
-
-  This operates in a similar way to `put_private/3` except that it should only
-  be used for Job configuration values (as a semantic difference).
-
-  This does not set the variable in the environment, as we clone the environment
-  Job configuration on startup to avoid polluting the environment.
-  """
-  @spec set_conf_variable(Vessel.t, any, any) :: Vessel.t
-  def set_conf_variable(%{ conf: conf } = ctx, field, value),
-    do: %{ ctx | conf: Map.put(conf, field, value) }
 
   @doc """
   Updates a Hadoop Job counter.
@@ -161,7 +181,7 @@ defmodule Vessel do
   required format.
   """
   @spec write(Vessel.t, any, any) :: :ok
-  def write(ctx, key, value),
-    do: Vio.stdout(ctx, "#{key}\t#{value}\n")
+  def write(%{ meta: %{ separators: { _in, out } } } = ctx, key, value),
+    do: Vio.stdout(ctx, "#{key}#{out}#{value}\n")
 
 end

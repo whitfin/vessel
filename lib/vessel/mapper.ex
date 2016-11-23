@@ -86,7 +86,12 @@ defmodule Vessel.Mapper do
 
       @doc false
       def handle_start(ctx) do
-        super(ctx)
+        input  = Vessel.get_conf(ctx, "stream.map.input.field.separator",  "\t")
+        output = Vessel.get_conf(ctx, "stream.map.output.field.separator", "\t")
+
+        ctx
+        |> Vessel.put_meta(:separators, { input, output })
+        |> super
       end
 
       @doc false

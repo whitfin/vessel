@@ -83,15 +83,24 @@ defmodule Vessel.Reducer do
       end
 
       @doc false
-      def handle_start(%Vessel{ } = ctx) do
-        super(ctx)
+      def handle_start(ctx) do
+        separators = {
+          Vessel.get_conf(ctx, "stream.reduce.input.field.separator", "\t"),
+          Vessel.get_conf(ctx, "stream.reduce.output.field.separator", "\t")
+        }
+
+        ctx
+        |> Vessel.put_meta(:separators, separators)
+        |> super
       end
 
       @doc false
       def handle_line(line, ctx) do
+        { input, _ } = Vessel.get_meta(ctx, :separators)
+
         new_ctx =
           line
-          |> Vio.split
+          |> Vio.split(input, 1)
           |> handle_convert(ctx)
 
         super(line, new_ctx)
@@ -110,12 +119,12 @@ defmodule Vessel.Reducer do
       # to see if they belong in the same group; if they do, then we just add the
       # new value to the buffer of values. If it's a new key, we fire a `reduce/3`
       # call with the previous key and values and begin storing the new state.
-      defp handle_convert([ key, val ], %Vessel{ group: { key, values } } = ctx) do
+      defp handle_convert({ key, val }, %Vessel{ group: { key, values } } = ctx) do
         ctx
         |> update_group(key, [ val | values ])
         |> update_count
       end
-      defp handle_convert([ new_key, val ], %Vessel{ } = ctx) do
+      defp handle_convert({ new_key, val }, %Vessel{ } = ctx) do
         ctx
         |> reduce_detect
         |> update_group(new_key, [ val ])

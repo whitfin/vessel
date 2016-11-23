@@ -75,13 +75,15 @@ defmodule Vessel.Relay do
   @doc """
   Retrieves a sorted Relay buffer.
 
-  This sort here is sorted in the same was as the values sorted after Hadoop has
-  received them. You should not have to sort after the reducing phase, only after
-  the mapping phase.
+  The sort here has a default of a default Hadoop sort but can be overridden to
+  sort based on custom options (for example if you tweak Hadoop's sorting).
+
+  For now you have to write your own sorting if you're doing a custom sort, as I
+  have neither the time or effort to implement a GNU-like sort parser.
   """
-  @spec sort(server) :: [ binary ]
-  def sort(pid),
-    do: pid |> raw |> Vio.sort
+  @spec sort(server, ((binary, binary) -> integer)) :: [ binary ]
+  def sort(pid, comparator \\ &default_sort/2),
+    do: pid |> raw |> Enum.sort(comparator)
 
   @doc """
   Stops a Relay worker.
@@ -100,10 +102,10 @@ defmodule Vessel.Relay do
   expects stream input - so converting the buffer to a Stream means that we can
   easily pipe through values internally between stages.
   """
-  @spec stream(server) :: Stream.t
-  def stream(pid) do
+  @spec stream(server, ((binary, binary) -> integer)) :: Stream.t
+  def stream(pid, comparator \\ &default_sort/2) do
     Stream.resource(
-      fn -> sort(pid) end,
+      fn -> sort(pid, comparator) end,
       fn
         ([ ]) ->
           { :halt, [] }
@@ -156,6 +158,14 @@ defmodule Vessel.Relay do
   # hang the calling IO process (which will usually be a MapReduce job).
   defp ack(caller, ref),
     do: send(caller, { :io_reply, ref, :ok })
+
+  # Sorts two values by splitting them and comparing the keys based on natural
+  # ordering, per the standard Hadoop sorting method.
+  defp default_sort(left, right) do
+    [ lkey, _lval ] = Vio.split(left,  "\t", 1)
+    [ rkey, _rval ] = Vio.split(right, "\t", 1)
+      rkey > lkey
+  end
 
   # Just prepends a received message to the provided buffer. This is trivial but
   # is factored out just because we use this behaviour in multiple places and it
