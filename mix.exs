@@ -35,7 +35,8 @@ defmodule Vessel.Mixfile do
         extras: [ "README.md" ],
         source_ref: "master",
         source_url: @url_github
-      ]
+      ],
+      test_coverage: [ tool: ExCoveralls ]
     ]
   end
 
@@ -60,8 +61,10 @@ defmodule Vessel.Mixfile do
       # Production dependencies
       { :exscript, "~> 0.1" },
       # Development dependencies
-      { :credo,  "~> 0.4",  optional: true, only: [ :dev, :test ] },
-      { :ex_doc, "~> 0.14", optional: true, only: [ :dev, :test ] }
+      { :benchfella,  "~> 0.3",  optional: true, only: [ :dev, :test ] },
+      { :credo,       "~> 0.4",  optional: true, only: [ :dev, :test ] },
+      { :ex_doc,      "~> 0.14", optional: true, only: [ :dev, :test ] },
+      { :excoveralls, "~> 0.5",  optional: true, only: [ :dev, :test ] }
     ]
   end
 end

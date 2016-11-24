@@ -1,6 +1,9 @@
 # The directory Mix will write compiled artifacts to.
 **/_build
 
+# Benchmarking tools and test cases.
+**/bench
+
 # If you run "mix test --cover", coverage assets end up here.
 **/cover
 
