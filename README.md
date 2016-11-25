@@ -1,6 +1,7 @@
 # Vessel
+[![Coverage Status](https://img.shields.io/coveralls/zackehh/vessel.svg?maxAge=900000)](https://coveralls.io/github/zackehh/vessel) [![Unix Build Status](https://img.shields.io/travis/zackehh/vessel.svg?maxAge=900000&label=unix)](https://travis-ci.org/zackehh/vessel) [![Windows Build Status](https://img.shields.io/appveyor/ci/zackehh/vessel.svg?maxAge=900000&label=win)](https://ci.appveyor.com/project/zackehh/vessel) [![Hex.pm Version](https://img.shields.io/hexpm/v/vessel.svg?maxAge=900000)](https://hex.pm/packages/vessel) [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://hexdocs.pm/vessel/)
 
-Vessel is a set of interfaces to make working with Hadoop Streaming much easier from inside Elixir. Rather than dealing with Hadoop protocols directly, Vessel masks them and makes it simple via a straightforward API. Vessel also includes tools to setup Hadoop projects easily, as well as Mix tasks to make compiling your artifacts easy.
+Vessel is a set of interfaces to make working with Hadoop Streaming much easier from inside Elixir. Rather than dealing with Hadoop protocols directly, Vessel masks them and makes it simple via a straightforward API. Vessel also includes tools to setup Hadoop projects easily, as well as Mix tasks to make compiling your artifacts easy. Although the aim is to build for Hadoop, you can also use Vessel in your own (non-Hadoop) projects.
 
 **Disclaimer:** *Vessel is currently in a pre-v1 state, meaning that the API may still change at any point. Although I will do my best to avoid this happening, please be aware that it may be forced to happen - so test thoroughly if you update your Vessel dependency. The v0.x versioning signifies that Vessel is not feature complete enough to be classified (in my opinion) as a v1.x, rather than it being an unstable or buggy codebase.*
 
@@ -123,7 +124,7 @@ You can customize the names of binaries and the target directory to by modifying
 
 ## Project Testing
 
-Until I get a testing framework in place, the best way to test your jobs is just with small input files. You don't need to have a running Hadoop installation; you can use the following to replicate the Hadoop behaviour. This will just pipe everything together in the same way that Hadoop would using standard UNIX sorting.
+The best way to test your jobs is just with small input files. You don't need to have a running Hadoop installation; you can use the following to replicate the Hadoop behaviour. This will just pipe everything together in the same way that Hadoop would using standard UNIX sorting (obviously tweak your `sort` arguments to match whatever you might use with Hadoop sorting).
 
 ```bash
 # Testing syntax
@@ -133,4 +134,4 @@ $ cat <input> | <mapper> | sort -k1,1 | <reducer>
 $ cat resources/input.txt | ./rel/v0.1.0/wordcount-mapper | sort -k1,1 | ./rel/v0.1.0/wordcount-reducer
 ```
 
-I intend to add something into the library to make testing a little easier so you can test via things like `ExUnit`. This will likely just be some form of dummy IO streams to make your job believe it's receiving from Hadoop when in reality it's just receiving from a test tool. Until this is complete, you'll have to test your code in isolation (e.g. call `map/3` yourself, and expect the output).
+I have also added a module named `Vessel.Relay` which acts as a dummy IO stream. You can use this module in unit tests to verify your projects, as it will capture the outputs written to the context. You can find examples of how to use the Relay inside the Vessel test cases for `Vessel.Mapper` and `Vessel.Reducer`, or by visiting the documentation.
