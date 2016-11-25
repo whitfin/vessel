@@ -27,7 +27,7 @@ defmodule Vessel.Relay do
   from within ExUnit and be short lived (to avoid leaking).
   """
   @spec create(Keyword.t) :: GenServer.on_start
-  def create(opts),
+  def create(opts \\ []),
     do: GenServer.start_link(__MODULE__, [], opts)
 
   @doc """
@@ -49,7 +49,7 @@ defmodule Vessel.Relay do
   form `{ :relay, msg }`.
   """
   @spec forward(server, server) :: :ok
-  def forward(pid, ref),
+  def forward(pid, ref \\ self()),
     do: pid |> get |> Enum.each(&send(ref, { :relay, &1 }))
 
   @doc """
@@ -95,27 +95,6 @@ defmodule Vessel.Relay do
   def stop(pid),
     do: GenServer.stop(pid)
 
-  @doc """
-  Streams a sorted Relay buffer.
-
-  There is no memory advantage to streaming here, but the `Vessel.Pipe` module
-  expects stream input - so converting the buffer to a Stream means that we can
-  easily pipe through values internally between stages.
-  """
-  @spec stream(server, ((binary, binary) -> integer)) :: Stream.t
-  def stream(pid, comparator \\ &default_sort/2) do
-    Stream.resource(
-      fn -> sort(pid, comparator) end,
-      fn
-        ([ ]) ->
-          { :halt, [] }
-        ([ head | tail ]) ->
-          { [head], tail }
-      end,
-      fn(_) -> nil end
-    )
-  end
-
   @doc false
   # Responds to a call to flush the existing buffer. We do this just by ignoring
   # the existing state and simply setting an empty list as the new buffer.
@@ -130,47 +109,46 @@ defmodule Vessel.Relay do
     do: { :reply, buffer, buffer }
 
   @doc false
-  # Handles a number of IO requests per the IO protocol. The IO protocol dictates
-  # that we response using the last element in the request list, but we don't as
-  # we want best performance and we ack before we even bother to persist (as we
-  # can guarantee that the requests never fail).
-  def handle_info({ :requests, requests }, buffer) do
-    # pull the caller and reference from the first message in the lists
-    [ { :io_request, caller, ref, _msg } | _rest ] = requests
+  # Handles both multi and single IO requests per the IO protocol. The protocol
+  # actually dictates that we respond after processing, but we can guarantee that
+  # we're going to accept and we don't want to block the caller any longer than
+  # have to, so we acknowledge instantly.
+  def handle_info({ :io_request, caller, ref, request }, buffer) do
     # acknowledge the IO call, per the protocol
-    ack(caller, ref)
-    # reduce the request list into a new buffer of messages
-    { :noreply, Enum.reduce(requests, buffer, &prep_buffer/2) }
-  end
+    send(caller, { :io_reply, ref, :ok })
 
-  @doc false
-  # Receives a single IO request, and simply acknowledges it per the IO protocol
-  # before prepending it to the existing buffer stored in the state.
-  def handle_info({ :io_request, caller, ref, _msg } = req, buffer) do
-    # acknowledge the IO call, per the protocol
-    ack(caller, ref)
-    # add the new message to the state and return the buffer
-    { :noreply, prep_buffer(req, buffer) }
-  end
+    # reduce the requests into our buffer
+    new_buffer =
+      request
+      |> wrap_request
+      |> Enum.reduce(buffer, &prep_buffer/2)
 
-  # This is just sugar for the IO acknowledgement, to avoid typos. This will just
-  # return :ok to the caller with the provided reference to make sure that we don't
-  # hang the calling IO process (which will usually be a MapReduce job).
-  defp ack(caller, ref),
-    do: send(caller, { :io_reply, ref, :ok })
+    # store the new buffer of messages
+    { :noreply, new_buffer }
+  end
 
   # Sorts two values by splitting them and comparing the keys based on natural
   # ordering, per the standard Hadoop sorting method.
   defp default_sort(left, right) do
-    [ lkey, _lval ] = Vio.split(left,  "\t", 1)
-    [ rkey, _rval ] = Vio.split(right, "\t", 1)
+    { lkey, _lval } = Vio.split(left,  "\t", 1)
+    { rkey, _rval } = Vio.split(right, "\t", 1)
       rkey > lkey
   end
 
   # Just prepends a received message to the provided buffer. This is trivial but
-  # is factored out just because we use this behaviour in multiple places and it
-  # makes the matching more convenient to do it in the function head.
-  defp prep_buffer({ :io_request, _c, _r, { _p, _e, msg } }, buf),
+  # is factored out just because it makes the matching more convenient to do it
+  # in the function head.
+  defp prep_buffer({ _put_chars, _encoding, msg }, buf),
     do: [ msg | buf ]
+
+  # Wraps an IO request into a List, using the message itself as a hint. We use
+  # this to guarantee a payload of requests we can operate on as a List which
+  # opens up the ability to use any of the Enum functions against them. Note
+  # that the `List.wrap/1` call should not be necessary (per the IO protocol),
+  # but we do it anyway to just be safe as it should be almost instant negation.
+  defp wrap_request({ :requests, requests }),
+    do: requests
+  defp wrap_request(request),
+    do: List.wrap(request)
 
 end
