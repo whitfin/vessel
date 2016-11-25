@@ -22,11 +22,9 @@ defmodule Vessel do
     # Job user related items
     args: [], private: %{},
     # Job execution metadata
-    conf: %{}, count: 0, group: nil,
+    conf: %{}, meta: %{},
     # IO related fun stuff
-    stderr: :stderr, stdout: :stdio,
-    # Internal storage
-    meta: %{}
+    stderr: :stderr, stdout: :stdio
   ]
 
   @doc """
@@ -107,10 +105,18 @@ defmodule Vessel do
   the results of your mapper - so going via `:stdio` would corrupt the Job values.
   """
   @spec log(Vessel.t, binary | any) :: :ok
-  def log(ctx, msg) when is_binary(msg),
-    do: Vio.stderr(ctx, "#{msg}\n")
   def log(ctx, msg),
-    do: Vessel.inspect(ctx, msg)
+    do: Vio.stderr(ctx, "#{msg}\n")
+
+  @doc """
+  Modifies a top level field in the Vessel context.
+
+  This should not be used externally to the library itself, as it can error when
+  used incorrectly (for example with invalid keys).
+  """
+  @spec modify(Vessel.t, atom, any) :: Vessel.t
+  def modify(ctx, key, value),
+    do: :maps.update(key, value, ctx)
 
   @doc """
   Sets a variable in the Job configuration.
@@ -178,10 +184,18 @@ defmodule Vessel do
   Writes a value to the Job context for a given key.
 
   To stay compatible with Hadoop Streaming, this will emit to `:stdio` in the
-  required format.
+  required format. The separator can be customized by settings custom separators
+  inside the :meta map, and is modified as such by the mapper/reducer phases.
   """
   @spec write(Vessel.t, any, any) :: :ok
   def write(%{ meta: %{ separators: { _in, out } } } = ctx, key, value),
-    do: Vio.stdout(ctx, "#{key}#{out}#{value}\n")
+    do: do_write(ctx, key, value, out)
+  def write(ctx, key, value),
+    do: do_write(ctx, key, value, "\t")
+
+  # Writes a key/value pair out using a given context and pair separator. This
+  # is separated out to make it easier to provide a default separator as needed.
+  defp do_write(ctx, key, value, sep),
+    do: Vio.stdout(ctx, "#{key}#{sep}#{value}\n")
 
 end
