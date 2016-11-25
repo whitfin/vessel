@@ -95,8 +95,8 @@ defmodule Vessel.Mapper do
       end
 
       @doc false
-      def handle_line(line, %Vessel{ count: count } = ctx) do
-        new_ctx = %Vessel{ ctx | count: count + 1 }
+      def handle_line(line, %{ meta: %{ count: count } } = ctx) do
+        new_ctx = Vessel.put_meta(ctx, :count, count + 1)
         trimmed = String.trim_trailing(line, "\n")
 
         count

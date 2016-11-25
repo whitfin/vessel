@@ -50,6 +50,7 @@ defmodule Vessel.Pipe do
         ctx
         |> setup
         |> handle_return(ctx)
+        |> Vessel.put_meta(:count, 1)
       end
 
       @doc false

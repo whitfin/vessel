@@ -84,47 +84,44 @@ defmodule Vessel.Reducer do
 
       @doc false
       def handle_start(ctx) do
-        separators = {
-          Vessel.get_conf(ctx, "stream.reduce.input.field.separator", "\t"),
-          Vessel.get_conf(ctx, "stream.reduce.output.field.separator", "\t")
-        }
+        input  = Vessel.get_conf(ctx, "stream.reduce.input.field.separator",  "\t")
+        output = Vessel.get_conf(ctx, "stream.reduce.output.field.separator", "\t")
 
         ctx
-        |> Vessel.put_meta(:separators, separators)
+        |> Vessel.put_meta(:separators, { input, output })
+        |> Vessel.put_meta(:group, nil)
         |> super
       end
 
       @doc false
-      def handle_line(line, ctx) do
-        { input, _ } = Vessel.get_meta(ctx, :separators)
-
+      def handle_line(line, %{ meta: %{ separators: { input, _ } } } = ctx) do
         new_ctx =
           line
           |> Vio.split(input, 1)
-          |> handle_convert(ctx)
+          |> group_pair(ctx)
 
         super(line, new_ctx)
       end
 
       @doc false
-      def handle_end(%Vessel{ } = ctx) do
+      def handle_end(ctx) do
         ctx
         |> reduce_detect
-        |> Map.put(:group, nil)
+        |> Vessel.put_meta(:group, nil)
         |> super
       end
 
       # This function handles the converted key/value pair coming from the prior
-      # call to `Vessel.IO.split/1`. We match on the previous key and the new key
+      # call to `Vessel.IO.split/3`. We match on the previous key and the new key
       # to see if they belong in the same group; if they do, then we just add the
       # new value to the buffer of values. If it's a new key, we fire a `reduce/3`
       # call with the previous key and values and begin storing the new state.
-      defp handle_convert({ key, val }, %Vessel{ group: { key, values } } = ctx) do
+      defp group_pair({ key, val }, %{ meta: %{ group: { key, vals } } } = ctx) do
         ctx
-        |> update_group(key, [ val | values ])
+        |> update_group(key, [ val | vals ])
         |> update_count
       end
-      defp handle_convert({ new_key, val }, %Vessel{ } = ctx) do
+      defp group_pair({ new_key, val }, %{ } = ctx) do
         ctx
         |> reduce_detect
         |> update_group(new_key, [ val ])
@@ -136,29 +133,25 @@ defmodule Vessel.Reducer do
       # call to `reduce_detect/1` will not have a valid key/values pair due to no
       # previous input being provided (a.k.a. the initial state). We return the
       # Vessel context here just to make it more convenient to piepline our calls.
-      defp reduce_detect(%Vessel{ group: { key, values } } = ctx) do
+      defp reduce_detect(%{ meta: %{ group: { key, values } } } = ctx) do
         reversed = Enum.reverse(values)
-
         key
         |> reduce(reversed, ctx)
         |> handle_return(ctx)
       end
-      defp reduce_detect(ctx) do
-        ctx
-      end
+      defp reduce_detect(ctx),
+        do: ctx
 
       # Updates the count inside the Vessel context. This is just used to keep
       # track of the number of records which have been read by the current Vessel
       # job, because we use that to represent the initial mapping key.
-      defp update_count(%Vessel{ count: count } = ctx) do
-        %Vessel{ ctx | count: count + 1 }
-      end
+      defp update_count(%{ meta: %{ count: count } } = ctx),
+        do: Vessel.put_meta(ctx, :count, count + 1)
 
       # Updates the stored key grouping inside our Vessel context by placing the
       # provided key and values inside a Tuple and updating the struct's group.
-      defp update_group(%Vessel{ } = ctx, key, values) do
-        %Vessel{ ctx | group: { key, values } }
-      end
+      defp update_group(ctx, key, values),
+        do: Vessel.put_meta(ctx, :group, { key, values })
 
       # We allow overriding reduce (obviously)
       defoverridable [ reduce: 3 ]
