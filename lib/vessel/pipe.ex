@@ -41,9 +41,8 @@ defmodule Vessel.Pipe do
       end
 
       @doc false
-      def setup(ctx) do
-        ctx
-      end
+      def setup(ctx),
+        do: ctx
 
       @doc false
       def handle_start(ctx) do
@@ -54,9 +53,8 @@ defmodule Vessel.Pipe do
       end
 
       @doc false
-      def handle_line(_line, ctx) do
-        ctx
-      end
+      def handle_line(_line, %{ meta: %{ count: count } } = ctx),
+        do: Vessel.put_meta(ctx, :count, count + 1)
 
       @doc false
       def handle_end(ctx) do
@@ -66,9 +64,8 @@ defmodule Vessel.Pipe do
       end
 
       @doc false
-      def cleanup(ctx) do
-        ctx
-      end
+      def cleanup(ctx),
+        do: ctx
 
       # Handles the start state, by allowing the implementing module to override
       # the `handle_start/1` and `setup/1` events without having to worry about

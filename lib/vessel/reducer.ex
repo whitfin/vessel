@@ -116,16 +116,12 @@ defmodule Vessel.Reducer do
       # to see if they belong in the same group; if they do, then we just add the
       # new value to the buffer of values. If it's a new key, we fire a `reduce/3`
       # call with the previous key and values and begin storing the new state.
-      defp group_pair({ key, val }, %{ meta: %{ group: { key, vals } } } = ctx) do
-        ctx
-        |> update_group(key, [ val | vals ])
-        |> update_count
-      end
+      defp group_pair({ key, val }, %{ meta: %{ group: { key, vals } } } = ctx),
+        do: update_group(ctx, key, [ val | vals ])
       defp group_pair({ new_key, val }, %{ } = ctx) do
         ctx
         |> reduce_detect
         |> update_group(new_key, [ val ])
-        |> update_count
       end
 
       # When we fire a reduction, we need to make sure that we have a valid group
@@ -141,12 +137,6 @@ defmodule Vessel.Reducer do
       end
       defp reduce_detect(ctx),
         do: ctx
-
-      # Updates the count inside the Vessel context. This is just used to keep
-      # track of the number of records which have been read by the current Vessel
-      # job, because we use that to represent the initial mapping key.
-      defp update_count(%{ meta: %{ count: count } } = ctx),
-        do: Vessel.put_meta(ctx, :count, count + 1)
 
       # Updates the stored key grouping inside our Vessel context by placing the
       # provided key and values inside a Tuple and updating the struct's group.

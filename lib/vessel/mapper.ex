@@ -96,13 +96,13 @@ defmodule Vessel.Mapper do
 
       @doc false
       def handle_line(line, %{ meta: %{ count: count } } = ctx) do
-        new_ctx = Vessel.put_meta(ctx, :count, count + 1)
         trimmed = String.trim_trailing(line, "\n")
 
-        count
-        |> to_string
-        |> map(trimmed, new_ctx)
-        |> handle_return(new_ctx)
+        new_ctx =
+          count
+          |> to_string
+          |> map(trimmed, ctx)
+          |> handle_return(ctx)
 
         super(line, new_ctx)
       end
