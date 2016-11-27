@@ -1,5 +1,7 @@
 defmodule Mix.Tasks.Compile.Vessel do
   @moduledoc """
+  Compiles a set of Vessel binaries.
+
   This module lives purely to allow the use of the `:vessel` compiler in your
   Mix definition.
 

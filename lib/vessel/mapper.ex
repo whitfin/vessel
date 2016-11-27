@@ -56,7 +56,7 @@ defmodule Vessel.Mapper do
   which has been modified using `Vessel.put_private/3`, in which case it is kept
   to be used as the context going forward.
   """
-  @callback map(key :: binary, value :: binary, ctx :: Vessel.t) :: any
+  @callback map(key :: binary, value :: binary, ctx :: Vessel.t) :: Vessel.t | any
 
   @doc """
   Invoked after all values have been read from the stream.

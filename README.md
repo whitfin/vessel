@@ -127,7 +127,7 @@ You can customize the names of binaries and the target directory to by modifying
 The best way to test your jobs is just with small input files. You don't need to have a running Hadoop installation; you can use the following to replicate the Hadoop behaviour. This will just pipe everything together in the same way that Hadoop would using standard UNIX sorting (obviously tweak your `sort` arguments to match whatever you might use with Hadoop sorting).
 
 ```bash
-# Testing syntax
+# Testing syntax, with a typical sort
 $ cat <input> | <mapper> | sort -k1,1 | <reducer>
 
 # Example usage (taken from the wordcount example)
@@ -135,3 +135,23 @@ $ cat resources/input.txt | ./rel/v0.1.0/wordcount-mapper | sort -k1,1 | ./rel/v
 ```
 
 I have also added a module named `Vessel.Relay` which acts as a dummy IO stream. You can use this module in unit tests to verify your projects, as it will capture the outputs written to the context. You can find examples of how to use the Relay inside the Vessel test cases for `Vessel.Mapper` and `Vessel.Reducer`, or by visiting the documentation.
+
+## Important Notes
+
+There are a number of things to be aware of so I'm going to detail them here, for want of a better place. You should make sure to read through this at least once before using Vessel.
+
+1. Erlang buffers the entirety of `:stdin` even before it's requested - this means that the memory in your tasks must be sufficient to buffer the entirety of your input. There is absolutely nothing I can do about this beyond document it (as it's Erlang behaviour rather than Vessel itself). Make sure you tune the memory for your tasks accordingly, or split your files up further. For reference, my test dataset, which consists of files anywhere from 100-150MB of GZIP compressed log data (JSON), required around 3GB memory per Mapper.
+
+  Tuning these options can be done via the `mapreduce.map.memory.mb` and `mapreduce.reduce.memory.mb` Hadoop options, both which take a number (in MBs) as a value. A general rule of thumb (as observed in the wild) seems to be that your Reducer should have ~2x the memory of your Mapper - and you should make good use of Combiners when applicable. You can also lower the split sizes of your files to avoid changing your memory allocation, but I'm not sure enough on how to do this to document it - if anyone does, feel free to PR this README to add a note!
+
+2. I have run several simple jobs on Amazon EMR using the dataset outlined above and everything seems to work quickly, and it's close enough to typical Java jobs that I can't really tell what the difference is in speed - it certainly doesn't feel slower, for what it's worth.
+
+  There may be a little sluggishness to begin with due to the memory overhead described above but a little extra memory would solve this fairly easily. In future, I may even add a handler to Vessel to make sure that a warning is emitted one the peak of `:stdin` has been detected, in order to inform you roughly how much memory you're going to want.
+
+3. Combiners are fully supported as they are just Reducers. You can add a `:combiner` compilation target to your `:vessel` declaration in your `mix.exs` to compile a Combiner. I have made sure to test that both compilation and running a Combiner works in actuality.
+
+4. Every time compilation is invoke with Mix, your binaries will be rebuilt (go ahead and try `mix compile`). If you wish to turn this off, you can remove the `:vessel` compiler from within your `mix.exs`. This will remove automatic compilation and require you to run the task `mix vessel.compile` in order to create your binaries.
+
+5. You can safely use Vessel outside of Hadoop Streaming, as it just accepts `:stdin` and writes to `:stdio`. This means that you can use Vessel to write computation tools for command line use as well as alongside Hadoop. You can even use it from within your own OTP application via the `consume/2` interface, although you would have to hook up your own `Vessel.Relay` to deal with the output (or any other process which can handle the IO protocol).
+
+6. Vessel binaries require Erlang to be installed on the nodes they're running on. This should be fairly evident, but I'm pointing it out just in case as I was once guilty of being unaware - your binaries are just Erlang `escript` files which do not have Erlang embedded within (I really wish they did, imagine what you could do with that!). They do not require Elixir be installed, as that *is* bundled into the binary.

@@ -35,7 +35,7 @@ defmodule Vessel.IO do
   end
 
   @doc """
-  Writes a message out to a contextual stderr.
+  Writes a message out to a contextual error stream.
 
   We write using the IO protocol to the process defined in the `:stderr` key of
   the Vessel context.
@@ -45,7 +45,7 @@ defmodule Vessel.IO do
     do: IO.write(stderr, msg)
 
   @doc """
-  Writes a message out to a contextual stdout.
+  Writes a message out to a contextual output stream.
 
   We write using the IO protocol to the process defined in the `:stdout` key of
   the Vessel context.
