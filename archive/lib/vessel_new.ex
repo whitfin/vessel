@@ -128,10 +128,11 @@ defmodule Mix.Tasks.Vessel.New do
   # set a valid application name. We add an additional hint if name is inferred.
   defp check_application_name!(name, from_app_flag) do
     unless name =~ ~r/^[a-z][\w_]*$/ do
-      extra = if !from_app_flag do
+      extra = if from_app_flag do
+        ""
+      else
         ". The application name is inferred from the path, if you'd like to " <>
         "explicitly name the application then use the `--app APP` option."
-      else
         ""
       end
 
