@@ -29,7 +29,7 @@ defmodule Vessel.Mixfile do
         maintainers: [ "Isaac Whitfield" ]
       },
       version: "0.1.0",
-      elixir: "~> 1.1",
+      elixir: "~> 1.3",
       deps: deps(),
       docs: [
         extras: [ "README.md" ],
