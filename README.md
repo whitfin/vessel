@@ -127,8 +127,8 @@ You can customize the names of binaries and the target directory to by modifying
 The best way to test your jobs is just with small input files. You don't need to have a running Hadoop installation; you can use the following to replicate the Hadoop behaviour. This will just pipe everything together in the same way that Hadoop would using standard UNIX sorting (obviously tweak your `sort` arguments to match whatever you might use with Hadoop sorting).
 
 ```bash
-# Testing syntax, with a typical sort
-$ cat <input> | <mapper> | sort -k1,1 | <reducer>
+# Testing syntax, with a typical sort - combiner optional
+$ cat <input> | <mapper> | sort -k1,1 | <combiner> | <reducer>
 
 # Example usage (taken from the wordcount example)
 $ cat resources/input.txt | ./rel/v0.1.0/wordcount-mapper | sort -k1,1 | ./rel/v0.1.0/wordcount-reducer
@@ -148,7 +148,7 @@ There are a number of things to be aware of so I'm going to detail them here, fo
 
   There may be a little sluggishness to begin with due to the memory overhead described above but a little extra memory would solve this fairly easily. In future, I may even add a handler to Vessel to make sure that a warning is emitted one the peak of `:stdin` has been detected, in order to inform you roughly how much memory you're going to want.
 
-3. Combiners are fully supported as they are just Reducers. You can add a `:combiner` compilation target to your `:vessel` declaration in your `mix.exs` to compile a Combiner. I have made sure to test that both compilation and running a Combiner works in actuality.
+3. Combiners are fully supported as they are just Reducers. You can add a `:combiner` compilation target to your `:vessel` declaration in your `mix.exs` to compile a Combiner. I have made sure to test that both compilation and running a Combiner works in actuality. The example `wordcount` contains an example of combiner usage.
 
 4. Every time compilation is invoke with Mix, your binaries will be rebuilt (go ahead and try `mix compile`). If you wish to turn this off, you can remove the `:vessel` compiler from within your `mix.exs`. This will remove automatic compilation and require you to run the task `mix vessel.compile` in order to create your binaries.
 
