@@ -12,7 +12,7 @@ defmodule Vessel.Mixfile do
     [
       app: :vessel,
       name: "Vessel",
-      description: "Elixir MapReduce interfaces for Hadoop Streaming",
+      description: "Elixir MapReduce interfaces with Hadoop Streaming integration",
       package: %{
         files: [
           "config",
@@ -44,7 +44,7 @@ defmodule Vessel.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger]]
+    [applications: [:logger, :exscript]]
   end
 
   # Dependencies can be Hex packages:

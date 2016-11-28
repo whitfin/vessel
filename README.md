@@ -1,7 +1,7 @@
 # Vessel
 [![Build Status](https://img.shields.io/travis/zackehh/vessel.svg?maxAge=900000)](https://travis-ci.org/zackehh/vessel) [![Coverage Status](https://img.shields.io/coveralls/zackehh/vessel.svg?maxAge=900000)](https://coveralls.io/github/zackehh/vessel) [![Hex.pm Version](https://img.shields.io/hexpm/v/vessel.svg?maxAge=900000)](https://hex.pm/packages/vessel) [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://hexdocs.pm/vessel/)
 
-Vessel is a set of interfaces to make working with Hadoop Streaming much easier from inside Elixir. Rather than dealing with Hadoop protocols directly, Vessel masks them and makes it simple via a straightforward API. Vessel also includes tools to setup Hadoop projects easily, as well as Mix tasks to make compiling your artifacts easy. Although the aim is to build for Hadoop, you can also use Vessel in your own (non-Hadoop) projects.
+Vessel is a MapReduce framework for Elixir, with support for Hadoop Streaming. Rather than dealing with Hadoop protocols directly, Vessel masks them and makes it simple via a straightforward API. Vessel also includes tools to setup Hadoop projects easily, as well as Mix tasks to make compiling your artifacts easy. Although the aim is to build for Hadoop, you can also use Vessel in your own (non-Hadoop) projects, or as binary executables for use in command line environments.
 
 **Disclaimer:** *Vessel is currently in a pre-v1 state, meaning that the API may still change at any point. Although I will do my best to avoid this happening, please be aware that it may be forced to happen - so test thoroughly if you update your Vessel dependency. The v0.x versioning signifies that Vessel is not feature complete enough to be classified (in my opinion) as a v1.x, rather than it being an unstable or buggy codebase.*
 
@@ -140,9 +140,11 @@ I have also added a module named `Vessel.Relay` which acts as a dummy IO stream.
 
 There are a number of things to be aware of so I'm going to detail them here, for want of a better place. You should make sure to read through this at least once before using Vessel.
 
-1. Erlang buffers the entirety of `:stdin` even before it's requested - this means that the memory in your tasks must be sufficient to buffer the entirety of your input. There is absolutely nothing I can do about this beyond document it (as it's Erlang behaviour rather than Vessel itself). Make sure you tune the memory for your tasks accordingly, or split your files up further. For reference, my test dataset, which consists of files anywhere from 100-150MB of GZIP compressed log data (JSON), required around 3GB memory per Mapper.
+1. Erlang buffers the entirety of `:stdin` even before it's requested - this means that the memory in your tasks must be sufficient to buffer the entirety of your input. There is absolutely nothing I can do about this beyond document it at the moment (as it's Erlang behaviour rather than Vessel itself). Make sure you tune the memory for your tasks accordingly, or split your files up further. For reference my test dataset, which consists of files anywhere from 100-150MB of GZIP compressed log data (JSON), required around 3GB memory per Mapper.
 
   Tuning these options can be done via the `mapreduce.map.memory.mb` and `mapreduce.reduce.memory.mb` Hadoop options, both which take a number (in MBs) as a value. A general rule of thumb (as observed in the wild) seems to be that your Reducer should have ~2x the memory of your Mapper - and you should make good use of Combiners when applicable. You can also lower the split sizes of your files to avoid changing your memory allocation, but I'm not sure enough on how to do this to document it - if anyone does, feel free to PR this README to add a note!
+
+  In the background, I'm trying to figure out how to make Vessel operate without a need to think about memory allocation - perhaps through some bindings which relay `:stdin` on demand to the Erlang process. This is admittedly a bit out of my depth at this point, so I'm not entirely sure when/if this might make it into the project. Ideas are welcome!
 
 2. I have run several simple jobs on Amazon EMR using the dataset outlined above and everything seems to work quickly, and it's close enough to typical Java jobs that I can't really tell what the difference is in speed - it certainly doesn't feel slower, for what it's worth.
 
@@ -150,7 +152,7 @@ There are a number of things to be aware of so I'm going to detail them here, fo
 
 3. Combiners are fully supported as they are just Reducers. You can add a `:combiner` compilation target to your `:vessel` declaration in your `mix.exs` to compile a Combiner. I have made sure to test that both compilation and running a Combiner works in actuality. The example `wordcount` contains an example of combiner usage.
 
-4. Every time compilation is invoke with Mix, your binaries will be rebuilt (go ahead and try `mix compile`). If you wish to turn this off, you can remove the `:vessel` compiler from within your `mix.exs`. This will remove automatic compilation and require you to run the task `mix vessel.compile` in order to create your binaries.
+4. Every time compilation is invoked with Mix, your binaries will be rebuilt (go ahead and try `mix compile`). If you wish to turn this off, you can remove the `:vessel` compiler from within your `mix.exs`. This will remove automatic compilation and require you to run the task `mix vessel.compile` in order to create your binaries.
 
 5. You can safely use Vessel outside of Hadoop Streaming, as it just accepts `:stdin` and writes to `:stdio`. This means that you can use Vessel to write computation tools for command line use as well as alongside Hadoop. You can even use it from within your own OTP application via the `consume/2` interface, although you would have to hook up your own `Vessel.Relay` to deal with the output (or any other process which can handle the IO protocol).
 
