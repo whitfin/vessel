@@ -4,7 +4,7 @@ defmodule Wordcount.Mixfile do
   def project do
     [app: :wordcount,
      version: "0.1.0",
-     elixir: "~> 1.1",
+     elixir: "~> 1.3",
      compilers: Mix.compilers() ++ [:vessel],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,

@@ -2,24 +2,18 @@ defmodule Vessel.Arch.Mixfile do
   use Mix.Project
 
   def project do
-    [
-      app: :vessel_arch,
-      version: "0.1.0",
-      elixir: "~> 1.1",
-      deps: deps(),
-      preferred_cli_env: [
-        "archive.build": :prod
-      ]
-    ]
+    [app: :vessel_arch,
+     version: "0.1.0",
+     elixir: "~> 1.3",
+     deps: deps(),
+     preferred_cli_env: [ "archive.build": :prod ]]
   end
 
   # Configuration for the OTP application
   #
   # Type "mix help compile.app" for more information
   def application do
-    [
-      applications: [ :logger, :tentacat ]
-    ]
+    [applications: [:logger, :tentacat]]
   end
 
   # Dependencies can be Hex packages:
