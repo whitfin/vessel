@@ -3,7 +3,7 @@ defmodule Vessel.Arch.Mixfile do
 
   def project do
     [app: :vessel_arch,
-     version: "0.1.0",
+     version: "0.8.0",
      elixir: "~> 1.3",
      deps: deps(),
      preferred_cli_env: [ "archive.build": :prod ]]

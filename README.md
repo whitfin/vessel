@@ -13,7 +13,7 @@ Vessel is available on [Hex](https://hex.pm/). You can install the package via:
 
     ```elixir
     def deps do
-      [{:vessel, "~> 0.1"}]
+      [{:vessel, "~> 0.8"}]
     end
     ```
 
@@ -33,7 +33,7 @@ You can install the latest archive using the commands below:
 
 ```bash
 # If previously uninstalled
-$ mix archive.install https://github.com/zackehh/vessel/archive/v0.1.0/vessel-archive-v0.1.0.ez
+$ mix archive.install https://github.com/zackehh/vessel/archive/v0.8.0/vessel-archive-v0.8.0.ez
 
 # Update a previous installation
 $ mix local.vessel
