@@ -5,6 +5,8 @@ defmodule Mix.Tasks.Local.Vessel do
   @shortdoc "Updates Vessel tasks locally"
 
   # github repo metadata
+  @git_root "https://api.github.com"
+  @git_head [{'User-Agent', 'vessel'}]
   @git_auth "zackehh"
   @git_repo "vessel"
   @git_arch ".ez"
@@ -21,9 +23,7 @@ defmodule Mix.Tasks.Local.Vessel do
   Accepts the same command line options as `archive.install`.
   """
   def run(args) do
-    { :ok, _ } = Application.ensure_all_started(:tentacat)
-
-    Tentacat.Client.new()
+    '/repos/#{@git_auth}/#{@git_repo}/releases'
     |> get_releases
     |> find_archive
     |> find_url
@@ -32,8 +32,13 @@ defmodule Mix.Tasks.Local.Vessel do
 
   # Retrieves the release list from the GitHub, pulling back using the module
   # attributes to designate the repo author and repo name.
-  defp get_releases(client),
-    do: Tentacat.Releases.list(@git_auth, @git_repo, client)
+  defp get_releases(target) do
+    { :ok, { { _, 200, _ }, _, body } } =
+      :httpc.request(:get, { '#{@git_root}#{target}', @git_head }, [], [])
+    body
+    |> List.to_string
+    |> Vessel.Tiny.decode!
+  end
 
   # Finds the latest release archive to install. Typically this is just plucking
   # the first release, as that's the latest. However, we do a search just to make
@@ -47,8 +52,8 @@ defmodule Mix.Tasks.Local.Vessel do
   # Although this is a linear search, because the latest release is typically
   # the first, this should be O(1) most of the time so it's not a concern for
   # slowness.
-  defp find_archive(%{ "assets" => assets }) do
-    case Enum.find(assets, &do_rel_search/1) do
+  defp find_archive(releases) do
+    case Enum.find(releases, &do_rel_search/1) do
       nil -> Mix.raise("Unable to locate release archive!")
       val -> val
     end
@@ -68,7 +73,7 @@ defmodule Mix.Tasks.Local.Vessel do
 
   # Searches through assets inside a release and returns true if any of the assets
   # are a .ez archive (which means they contain a new installer version).
-  defp do_rel_search(assets),
+  defp do_rel_search(%{ "assets" => assets }),
     do: Enum.any?(assets, &do_ext_search/1)
 
   # Determines whether an asset has an archive extension. We do this by just using
