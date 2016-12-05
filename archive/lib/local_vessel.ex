@@ -33,6 +33,8 @@ defmodule Mix.Tasks.Local.Vessel do
   # Retrieves the release list from the GitHub, pulling back using the module
   # attributes to designate the repo author and repo name.
   defp get_releases(target) do
+    :inets.start()
+    :ssl.start()
     { :ok, { { _, 200, _ }, _, body } } =
       :httpc.request(:get, { '#{@git_root}#{target}', @git_head }, [], [])
     body
@@ -55,7 +57,10 @@ defmodule Mix.Tasks.Local.Vessel do
   defp find_archive(releases) do
     case Enum.find(releases, &do_rel_search/1) do
       nil -> Mix.raise("Unable to locate release archive!")
-      val -> val
+      val ->
+        val
+        |> Map.get("assets")
+        |> Enum.find(&do_ext_search/1)
     end
   end
 
