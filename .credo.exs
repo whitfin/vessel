@@ -17,7 +17,7 @@
         #
         # you can give explicit globs or simply directories
         # in the latter case `**/*.{ex,exs}` will be used
-        included: ["archive/lib/", "examples/lib/", "lib/"],
+        included: ["lib/", "src/", "web/", "apps/"],
         excluded: []
       },
       #
@@ -47,7 +47,7 @@
         # You can also customize the exit_status of each check.
         # If you don't want TODO comments to cause `mix credo` to fail, just
         # set this value to 0 (zero).
-        {Credo.Check.Design.TagTODO, exit_status: 0},
+        {Credo.Check.Design.TagTODO, false},
         {Credo.Check.Design.TagFIXME},
 
         {Credo.Check.Readability.FunctionNames},
@@ -55,6 +55,7 @@
         {Credo.Check.Readability.ModuleAttributeNames},
         {Credo.Check.Readability.ModuleDoc},
         {Credo.Check.Readability.ModuleNames},
+        {Credo.Check.Readability.ParenthesesInCondition, false},
         {Credo.Check.Readability.PredicateFunctionNames},
         {Credo.Check.Readability.TrailingBlankLine},
         {Credo.Check.Readability.TrailingWhiteSpace},
@@ -64,7 +65,7 @@
         {Credo.Check.Refactor.CaseTrivialMatches},
         {Credo.Check.Refactor.CondStatements},
         {Credo.Check.Refactor.FunctionArity},
-        {Credo.Check.Refactor.MatchInCondition},
+        {Credo.Check.Refactor.MatchInCondition, false},
         {Credo.Check.Refactor.PipeChainStart},
         {Credo.Check.Refactor.CyclomaticComplexity, max_complexity: 12},
         {Credo.Check.Refactor.NegatedConditionsInUnless},
