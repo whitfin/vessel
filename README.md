@@ -33,7 +33,7 @@ You can install the latest archive using the commands below:
 
 ```bash
 # If previously uninstalled
-$ mix archive.install https://github.com/zackehh/vessel/archive/v0.8.0/vessel-archive-v0.8.0.ez
+$ mix archive.install https://github.com/zackehh/vessel/releases/download/v0.8.0/vessel_arch-v0.8.0.ez
 
 # Update a previous installation
 $ mix local.vessel
