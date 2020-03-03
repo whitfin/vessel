@@ -11,19 +11,19 @@ Vessel is available on [Hex](https://hex.pm/). You can install the package via:
 
   1. Add vessel to your list of dependencies in `mix.exs`:
 
-    ```elixir
-    def deps do
-      [{:vessel, "~> 0.8"}]
-    end
-    ```
+```elixir
+  def deps do
+    [{:vessel, "~> 0.8"}]
+  end
+```
 
   2. Ensure vessel is started before your application:
 
-    ```elixir
-    def application do
-      [applications: [:vessel]]
-    end
-    ```
+```elixir
+  def application do
+    [applications: [:vessel]]
+  end
+```
 
 ## Setup
 
