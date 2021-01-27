@@ -45,11 +45,11 @@ jobs:
           otp-version: ${{ matrix.otp }}
 
       - name: Setup Environment
-        run:
-          - epmd -daemon
-          - mix local.hex --force
-          - mix local.rebar --force
-          - mix deps.get
+        run: |
+          epmd -daemon
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get
 
       - name: Run Tests
         run: mix test --trace
