@@ -14,9 +14,11 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
+        otp:
+          - 1.11
+        elixir:
+          - 21.3
         include:
-          - elixir: 1.11
-            otp: 21.3
           - elixir: 1.10
             otp: 21.3
           - elixir: 1.9
@@ -40,8 +42,8 @@ jobs:
       - name: Set up Elixir
         uses: erlef/setup-elixir@v1
         with:
-          elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
 
       - name: Setup Environment
         run: |
@@ -61,7 +63,7 @@ jobs:
       - name: Set up Elixir
         uses: erlef/setup-elixir@v1
         with:
-          elixir-version: 1.10
+          elixir-version: 1.11
           otp-version: 21.3
 
       - name: Setup Environment
@@ -84,7 +86,7 @@ jobs:
       - name: Set up Elixir
         uses: erlef/setup-elixir@v1
         with:
-          elixir-version: 1.10
+          elixir-version: 1.11
           otp-version: 21.3
 
       - name: Setup Environment
