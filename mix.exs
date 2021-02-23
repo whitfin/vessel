@@ -62,9 +62,9 @@ defmodule Vessel.Mixfile do
       { :exscript, "~> 0.1" },
       # Development dependencies
       { :benchfella,  "~> 0.3",  optional: true, only: [ :dev, :test ] },
-      { :credo,       "~> 0.4",  optional: true, only: [ :dev, :test ] },
+      { :credo,       "~> 1.5",  optional: true, only: [ :dev, :test ] },
       { :ex_doc,      "~> 0.14", optional: true, only: [ :dev, :test ] },
-      { :excoveralls, "~> 0.5",  optional: true, only: [ :dev, :test ] }
+      { :excoveralls, "~> 0.13", optional: true, only: [ :dev, :test ] }
     ]
   end
 end

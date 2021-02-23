@@ -1,5 +1,5 @@
 # Vessel
-[![Build Status](https://img.shields.io/travis/zackehh/vessel.svg?maxAge=900000)](https://travis-ci.org/zackehh/vessel) [![Coverage Status](https://img.shields.io/coveralls/zackehh/vessel.svg?maxAge=900000)](https://coveralls.io/github/zackehh/vessel) [![Hex.pm Version](https://img.shields.io/hexpm/v/vessel.svg?maxAge=900000)](https://hex.pm/packages/vessel) [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://hexdocs.pm/vessel/)
+[![Build Status](https://img.shields.io/github/workflow/status/whitfin/vessel/CI)](https://github.com/whitfin/vessel/actions) [![Coverage Status](https://img.shields.io/coveralls/whitfin/vessel.svg?maxAge=900000)](https://coveralls.io/github/whitfin/vessel) [![Hex.pm Version](https://img.shields.io/hexpm/v/vessel.svg?maxAge=900000)](https://hex.pm/packages/vessel) [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://hexdocs.pm/vessel/)
 
 Vessel is a MapReduce framework for Elixir, with support for Hadoop Streaming. Rather than dealing with Hadoop protocols directly, Vessel masks them and makes it simple via a straightforward API. Vessel also includes tools to setup Hadoop projects easily, as well as Mix tasks to make compiling your artifacts easy. Although the aim is to build for Hadoop, you can also use Vessel in your own (non-Hadoop) projects, or as binary executables for use in command line environments.
 
@@ -33,7 +33,7 @@ You can install the latest archive using the commands below:
 
 ```bash
 # If previously uninstalled
-$ mix archive.install https://github.com/zackehh/vessel/releases/download/v0.8.0/vessel_arch-0.8.0.ez
+$ mix archive.install https://github.com/whitfin/vessel/releases/download/v0.8.0/vessel_arch-0.8.0.ez
 
 # Update a previous installation
 $ mix local.vessel
@@ -104,7 +104,7 @@ $ mix vessel.compile
 You should see some output similar to the following (it may change in future as the library evolves):
 
 ```
-zackehh:/tmp/my_app$ mix compile
+whitfin:/tmp/my_app$ mix compile
 ==> exscript
 Compiling 1 file (.ex)
 Generated exscript app
